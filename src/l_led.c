@@ -10,8 +10,8 @@ int main (void)
 
   while (1) {
     PORTB = 0x00;
-    for (i = 0; i < 500; i ++) _delay_ms(1); // 16 ms @ 16 MHz
+    for (i = 0; i < 500; i ++) _delay_ms(1);
     PORTB = 0xFF;
-    for (i = 0; i < 500; i ++) _delay_ms(1); // 16 ms @ 16 MHz
+    for (i = 0; i < 500; i ++) _delay_ms(1);
   }
 }
