@@ -6,11 +6,13 @@
 #include "spi/spi.h"
 #include "w5100/w5100.h"
 
-uint8_t size = 64;
-uint8_t buffer [64];
+uint8_t size = 96;
+uint8_t buffer [96];
 
 void blink (void)
 {
+  spi_disable();
+
   /* set Timer0 Overflow Interrupt Enable bit */
   TIMSK0 = (1 << TOIE0);
 
@@ -18,29 +20,34 @@ void blink (void)
   TCNT0 = 0x00;
 
   /* set prescaler */
-  TCCR0B = (1 << CS02) | (1 << CS00);
-  sei();
+  TCCR0B = (1 << CS02);
+  TCCR0B |= (1 << CS00);
+
   PORTB = 0xFF;
 
+  sei();
 }
 
 int main (void)
 {
+  int32_t status;
+
+  for (uint8_t i=0; i < size; i++) buffer[i] = i;
+
   spi_enable();
-  if (w5100_init() == 0) blink();
-  //if (w5100_udp_open() == 0) blink();
-  spi_disable();
-  //blink();
-  //for (uint8_t i=0; i < size; i++) buffer[i] = i;
+  status = w5100_init();
+  if (status) while (true);
+
+  status = w5100_udp_open();
+  if (status) while (true);
+
+  if (!w5100_udp_tx(buffer, size)) blink();
+
   while (true);
 }
 
 ISR(TIMER0_OVF_vect)
 {
+
   PORTB ^= 0xFF;
-  return;
-  cli();
-  uint8_t retval = w5100_udp_tx(buffer, size);
-  if (retval == 0) PORTB ^= 0xFF;
-  sei();
 }

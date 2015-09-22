@@ -27,6 +27,8 @@
 #define SIPR2 SIPR0+2
 #define SIPR3 SIPR0+3
 
+#define IR 0x0015
+
 #define RMSR 0x001A
 
 #define TMSR 0x001B
@@ -41,8 +43,10 @@
 #define UDP (1 << P1)
 
 #define S0_CR 0x0401
-#define OPEN 0x00
-#define SEND 0x21
+#define SN_CR_CLEAR 0x00
+#define SN_CR_OPEN 0x01
+#define SN_CR_CLOSE 0x10
+#define SN_CR_SEND 0x21
 
 #define S0_SR 0x0403
 #define SOCK_UDP 0x22
@@ -59,7 +63,7 @@
 #define S0_DPORT1 S0_DPORT0+1
 
 #define S0_TX_FSR0 0x0420
-#define S0_TX_FSR1 S0_DPORT0+1
+#define S0_TX_FSR1 S0_TX_FSR0+1
 
 #define S0_TX_WR0 0x0424
 #define S0_TX_WR1 S0_TX_WR0+1

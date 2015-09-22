@@ -13,11 +13,15 @@ int8_t spi_enable()
   PORTB |= (1 << SPI_SS);
 
   /* Set direction for SPI pins */
-  DDRB |= (1 << SPI_SS) | (1 << SPI_MOSI) | (1 << SPI_SCK);
+  DDRB |= (1 << SPI_SS);
+  DDRB |= (1 << SPI_MOSI);
+  DDRB |= (1 << SPI_SCK);
   DDRB &= ~(1 << SPI_MISO);
 
   /* Enable SPI Master mode @ 1 MHz */
-  SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
+  SPCR |= (1 << MSTR);
+  SPCR |= (1 << SPR0);
+  SPCR |= (1 << SPE);
 
   /* Clear SPI interrupt flag */
   SPSR;
@@ -48,10 +52,12 @@ void spi_write(uint8_t byte)
 
 void spi_select(void)
 {
+  /* Set SS# output low */
   PORTB &= ~(1 << SPI_SS);
 }
 
 void spi_deselect(void)
 {
+  /* Set SS# output high */
   PORTB |= (1 << SPI_SS);
 }
