@@ -11,7 +11,7 @@ uint8_t buffer [96];
 
 void blink (void)
 {
-  spi_disable();
+  //spi_disable();
 
   /* set Timer0 Overflow Interrupt Enable bit */
   TIMSK0 = (1 << TOIE0);
@@ -46,8 +46,15 @@ int main (void)
   while (true);
 }
 
-ISR(TIMER0_OVF_vect)
-{
+/**
+ * Interrupt Service Routine - Timer #0 overflow
+ *
+ * Should be fired not more than several dozen times per second
+ */
 
-  PORTB ^= 0xFF;
+ISR (TIMER0_OVF_vect)
+{
+  w5100_udp_tx(buffer, size);
+
+  //PORTB ^= 0xFF;
 }

@@ -31,6 +31,26 @@ uint8_t w5100_spi_read(uint16_t addr)
   return data;
 }
 
+uint16_t w5100_spi_read_short(uint16_t addr)
+{
+  uint16_t retval = 0;
+  retval = (w5100_spi_read(addr) << 8);
+  retval += w5100_spi_read(addr+1);
+
+  return retval;
+}
+
+uint32_t w5100_spi_read_long(uint16_t addr)
+{
+  uint32_t retval = 0;
+  retval = ((uint32_t) w5100_spi_read(addr) << 24);
+  retval += ((uint32_t) w5100_spi_read(addr+1) << 16);
+  retval += ((uint32_t) w5100_spi_read(addr+2) << 8);
+  retval += (uint32_t) w5100_spi_read(addr+3);
+
+  return retval;
+}
+
 int32_t w5100_spi_write(uint16_t addr, uint8_t data)
 {
   /* Select the W5100 through SPI */
@@ -47,6 +67,34 @@ int32_t w5100_spi_write(uint16_t addr, uint8_t data)
 
   return 0;
 }
+
+int32_t w5100_spi_write_short(uint16_t addr, uint16_t data)
+{
+  int32_t status;
+  status = w5100_spi_write(addr, (data >> 8) & 0x00FF);
+  if (status) return status;
+  status = w5100_spi_write(addr+1, data & 0x00FF);
+  if (status) return status;
+
+  return 0;
+}
+
+int32_t w5100_spi_write_long(uint16_t addr, uint32_t data)
+{
+  int32_t status;
+  status = w5100_spi_write(addr, (data >> 24) & 0xFF);
+  if (status) return status;
+  status = w5100_spi_write(addr+1, (data >> 16) & 0xFF);
+  if (status) return status;
+  status = w5100_spi_write(addr+2, (data >> 8) & 0xFF);
+  if (status) return status;
+  status = w5100_spi_write(addr+3, data & 0xFF);
+  if (status) return status;
+
+  return 0;
+}
+
+/* High Level */
 
 int32_t w5100_init()
 {
@@ -196,26 +244,27 @@ int32_t w5100_udp_open()
 
 int32_t w5100_udp_tx(uint8_t * buffer, uint16_t size)
 {
-  uint16_t tx_offset;
-  uint16_t tx_ptr;
-  uint16_t i;
-
   /* Check that Tx memory free size is enough */
-  if (w5100_spi_read(S0_TX_FSR0) < 4) return -EW5100_TXMEM;
+  if (w5100_spi_read_short(S0_TX_FSR0) < 1024) return -EW5100_TXMEM;
 
-  /* Get Tx offset */
-  tx_offset = ((w5100_spi_read(S0_TX_WR0) & 0x00FF) << 8) + w5100_spi_read(S0_TX_WR1);
+  /* Get W5100 internal write pointer */
+  uint16_t w5100_s0_tx_wr_ptr;
+  w5100_s0_tx_wr_ptr = w5100_spi_read_short(S0_TX_WR0);
+
+  /* Convert to physical offset (from S0_TX_BASE) */
+  uint16_t tx_wr_offset;
+  tx_wr_offset = w5100_s0_tx_wr_ptr & S0_TX_MASK;
 
   /* Write buffer contents */
-  for (i = 0; i < size; i++) {
-    tx_ptr = S0_TX_BASE + ((/*tx_offset + */i) & S0_TX_MASK);
-    w5100_spi_write(tx_ptr, buffer[i]);
+  uint16_t tx_wr_ptr;
+  for (uint16_t i = 0; i < size; i++) {
+    tx_wr_ptr = S0_TX_BASE + ((tx_wr_offset+i) & S0_TX_MASK);
+    w5100_spi_write(tx_wr_ptr, buffer[i]);
   }
 
   /* Update Tx offset */
-  tx_offset = ((tx_offset + size) & S0_TX_MASK);
-  w5100_spi_write(S0_TX_WR0, (tx_offset >> 8) & 0x00FF);
-  w5100_spi_write(S0_TX_WR1, tx_offset & 0x00FF);
+  w5100_s0_tx_wr_ptr += size;
+  w5100_spi_write_short(S0_TX_WR0, w5100_s0_tx_wr_ptr);
 
   /* Issue send command */
   w5100_spi_write(S0_CR, SN_CR_SEND);
