@@ -5,9 +5,14 @@
 
 #include "spi/spi.h"
 #include "w5100/w5100.h"
+#include "adc/adc.h"
 
-uint8_t size = 96;
-uint8_t buffer [96];
+
+#define ADC_CHANNELS 8
+#define ADC_RESOLUTION 16
+
+uint8_t size = ADC_RESOLUTION*ADC_CHANNELS/8;
+uint8_t buffer [ADC_RESOLUTION*ADC_CHANNELS/8];
 
 void blink (void)
 {
@@ -41,6 +46,8 @@ int main (void)
   status = w5100_udp_open();
   if (status) while (true);
 
+  adc_init();
+
   if (!w5100_udp_tx(buffer, size)) blink();
 
   while (true);
@@ -54,6 +61,9 @@ int main (void)
 
 ISR (TIMER0_OVF_vect)
 {
+  for (uint8_t i = 0; i < ADC_CHANNELS; i++) {
+    buffer[i*(ADC_RESOLUTION/8)] = adc_read(i);
+  }
   w5100_udp_tx(buffer, size);
 
   //PORTB ^= 0xFF;

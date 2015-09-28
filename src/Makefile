@@ -1,10 +1,10 @@
-obj = spi.o w5100.o main.o
+obj = spi.o w5100.o main.o adc.o
 prj = udp_beacon
 
 mcu = atmega328p
 
 override CFLAGS += -Wall -std=c99 -mmcu=$(mcu)
-VPATH = spi:w5100
+VPATH = spi:w5100:adc
 CC = avr-gcc
 OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
