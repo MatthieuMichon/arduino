@@ -14,6 +14,9 @@ all: $(prj).elf $(prj).lst $(prj).hex
 $(prj).elf: $(obj)
 	$(CC) $(CFLAGS) $^ -o $@
 
+main.o: spi.h w5100.h adc.h
+w5100.o: spi.h w5100.h w5100_regs.h
+
 %.lst: %.elf
 	$(OBJDUMP) -h -S $< > $@
 

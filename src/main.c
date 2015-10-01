@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -11,8 +12,9 @@
 #define ADC_CHANNELS 8
 #define ADC_RESOLUTION 16
 
-uint8_t size = ADC_RESOLUTION*ADC_CHANNELS/8;
-uint8_t buffer [ADC_RESOLUTION*ADC_CHANNELS/8];
+#define BUFFER_SIZE 96
+uint8_t size = BUFFER_SIZE;
+uint8_t buffer [BUFFER_SIZE];
 
 void blink (void)
 {
@@ -61,8 +63,13 @@ int main (void)
 
 ISR (TIMER0_OVF_vect)
 {
-  for (uint8_t i = 0; i < ADC_CHANNELS; i++) {
-    buffer[i*(ADC_RESOLUTION/8)] = adc_read(i);
+  memset((char*) buffer, 0, BUFFER_SIZE);
+  strcpy((char*) buffer, "ADC: ");
+  for (uint8_t i = 0; i <= ADC_CHANNELS; i++) {
+    buffer[5+i*5] = '0' + i;
+    buffer[5+i*5+1] = ':';
+    buffer[5+i*5+2] = ' ';
+    buffer[5+i*5+3] = adc_read(i);
   }
   w5100_udp_tx(buffer, size);
 
