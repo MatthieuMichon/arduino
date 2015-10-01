@@ -10,6 +10,6 @@ This goal is to broadcast information gathered from a smart electricity meter, m
 - [X] Initialize the W5100 SPI <-> LAN interface IC
 - [X] Send a single dummy broadcast UDP datagram
 - [X] Continuously broadcast dummy UDP datagrams
-- [ ] Continuously broadcast UDP datagrams with a variable data (using ADCs as input data)
+- [X] Continuously broadcast UDP datagrams with a variable data (using ADCs as input data)
 - [ ] Continuously broadcast UDP datagrams with a data structure TBD (CSV; JSON; YAML or whatever)
 - [ ] Continuously broadcast UDP datagrams with a data structure TBD with data from UART connected to the electricity meter
